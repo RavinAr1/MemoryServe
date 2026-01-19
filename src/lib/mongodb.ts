@@ -13,7 +13,7 @@ const options = {};
 let client;
 let clientPromise: Promise<MongoClient>;
 
-// In development mode, a gloabl variable is used
+// A gloabl variable is used in the development mode
 if (process.env.NODE_ENV === 'development') {
 
   let globalWithMongo = global as typeof globalThis & {
