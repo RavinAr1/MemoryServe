@@ -15,7 +15,7 @@ export default function Home() {
       const sessionId = generateSessionId();
 
       // Call the API to save notes
-      const response = await fetch("/api/add-note", {
+      const response = await fetch("/api/add-notes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: input, sessionId }),
