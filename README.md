@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🧠 MemoryServe
 
-## Getting Started
+MemoryServe is a **Retrieval-Augmented Generation (RAG)** project. It allows an AI assistant to remember facts by storing user input in a vector database and retrieving relevant information during future conversations.
 
-First, run the development server:
+## 🚀Features
 
+* **Long-Term Memory:** Stores text inputs in MongoDB Atlas.
+* **Contextual Recall:** Uses vector search to find relevant notes based on meaning, not just keywords.
+* **Hybrid Chat:** Can handle both general questions and database-specific queries.
+* **Rate Limiting:** Includes basic handling for API quotas.
+
+## 🛠️ Tech Stack
+
+* **Framework:** Next.js & TypeScript
+* **Database:** MongoDB Atlas 
+* **AI:** Google Gemini API
+* **Integration:** LangChain.js
+
+## ⚡Getting Started
+
+### 1. Clone the repo
+ 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/RavinAr1/MemoryServe.git
+
+cd MemoryServe
+
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Environment Setup
+Create a .env.local file with below credentials
+```
+MONGODB_URI=<your mongodb connection string>
+GOOGLE_API_KEY=<your gemini api key>
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 3. Database Setup
 
-## Learn More
+1. Create a database named 'memory_db' and a collection named `notes`.
 
-To learn more about Next.js, take a look at the following resources:
+2. Create a Vector Search Index on the 'notes' collection using the Json Editor and add the below:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```json
+{
+  "fields": [
+    {
+      "numDimensions": 768,
+      "path": "embedding",
+      "similarity": "cosine",
+      "type": "vector"
+    },
+    {
+      "path": "owner_id",
+      "type": "filter"
+    }
+  ]
+}
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 4. Run the App
+```
+npm run dev
+```
