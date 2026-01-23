@@ -2,14 +2,39 @@ import { NextRequest, NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { auth } from "@clerk/nextjs/server";
+
+
 
 export async function POST(req: NextRequest) {
   try {
-    const { question, sessionId } = await req.json();
+    const { question, sessionId: clientSessionId } = await req.json();
 
-    if (!question || !sessionId) {
+    // --- Security Check Start ---
+
+    // Get Authenticated User(If user is logged in, use their userId as sessionId ,
+    //  If not logged in, ensure clientSessionId starts with "guest-")
+    const { userId } = await auth();
+    let finalSessionId = clientSessionId;
+
+    if (userId) {
+      finalSessionId = userId;
+    } else {
+       if (!clientSessionId || !clientSessionId.startsWith("guest-")) {
+         return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
+       }
+    }
+    // --- Security Check End ---
+
+
+
+
+
+    // Validate Input
+    if (!question || !finalSessionId) {
       return NextResponse.json({ error: "Missing question or sessionId" }, { status: 400 });
     }
+
 
     const client = await clientPromise;
     const db = client.db("memory_db");
@@ -31,7 +56,7 @@ export async function POST(req: NextRequest) {
           queryVector: questionVector,
           numCandidates: 100,
           limit: 6,
-          filter: { owner_id: sessionId },
+          filter: { owner_id: finalSessionId },
         },
       },
       {

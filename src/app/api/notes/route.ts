@@ -1,14 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
+import { auth } from "@clerk/nextjs/server";
+
+
+
+// Function to securely get sessionId
+async function getSecureSessionId(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const clientSessionId = searchParams.get("sessionId");
+  const { userId } = await auth();
+
+  // Security check
+  if (userId) return userId;  // Logged-in users from Clerk
+  if (clientSessionId?.startsWith("guest-")) return clientSessionId;  // Allow guest sessions
+  return null;  // Reject others
+}
+
+
+
 
 // Retrieve notes for a specific session
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const sessionId = searchParams.get("sessionId");
+  
+  // Securely get a valid sessionId
+  const sessionId = await getSecureSessionId(req);
 
   if (!sessionId) {
-    return NextResponse.json({ error: "Missing sessionId" }, { status: 400 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
@@ -18,12 +37,13 @@ export async function GET(req: NextRequest) {
     // Fetch notes for the session
     const notes = await db.collection("notes")
       .find({ owner_id: sessionId })
-      .sort({ _id: -1 }) // Newest first
+      .sort({ _id: -1 })
       .toArray();
 
+    // Return the notes
     return NextResponse.json(notes);
   } catch (error) {
-    return NextResponse.json({ error: "Database error" }, { status: 500 });
+    return NextResponse.json({ error: "Database error" }, { status: 500 }); 
   }
 }
 
@@ -31,15 +51,26 @@ export async function GET(req: NextRequest) {
 
 // Delete a note by ID or by source filename
 export async function DELETE(req: NextRequest) {
+  const sessionId = await getSecureSessionId(req);  // Securely get a valid sessionId
+
+  if (!sessionId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+
+  // Extract parameters
   const { searchParams } = new URL(req.url);
   const noteId = searchParams.get("id");
-  const source = searchParams.get("source");  // Delete by source filename
-  const sessionId = searchParams.get("sessionId");
+  const source = searchParams.get("source");
 
-  if (!sessionId || (!noteId && !source)) {
+
+  // Validate parameters
+  if (!noteId && !source) {
     return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
   }
 
+
+  // Perform deletion
   try {
     const client = await clientPromise;
     const db = client.db("memory_db");
@@ -47,21 +78,18 @@ export async function DELETE(req: NextRequest) {
     let result;
 
     if (noteId) {
-       // Delete a single chunk
        result = await db.collection("notes").deleteOne({ 
         _id: new ObjectId(noteId),
-        owner_id: sessionId
+        owner_id: sessionId   // Enforce secure ID
       });
     } else if (source) {
-       
-
-      // Delete a whole file's chunks
        result = await db.collection("notes").deleteMany({
          source: source,
-         owner_id: sessionId
+         owner_id: sessionId // Enforce secure ID
        });
     }
 
+    // Return deletion result
     return NextResponse.json({ success: true, deletedCount: result?.deletedCount });
   } catch (error) {
     return NextResponse.json({ error: "Failed to delete" }, { status: 500 });

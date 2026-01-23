@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import PDFParser from "pdf2json";
+import { auth } from "@clerk/nextjs/server";
+
+
 
 // Function to parse PDF and extract text
 function parsePDF(buffer: Buffer): Promise<string> {
@@ -42,11 +45,31 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File;
-    const sessionId = formData.get("sessionId") as string;
+    const clientSessionId = formData.get("sessionId") as string;
 
-    if (!file || !sessionId) {
+    // --- Security Check ---
+    const { userId } = await auth();  // Verified user ID from Clerk
+    let finalSessionId = clientSessionId;
+
+
+    if (userId) {
+      
+      // If logged in, override the session id with Clerk user ID
+      finalSessionId = userId;
+    } else {
+      
+      // For guests, ensure sessionId starts with "guest-"
+      if (!clientSessionId || !clientSessionId.startsWith("guest-")) {
+         return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
+      }
+    }
+    // --- Security Check End ---
+
+    if (!file || !finalSessionId) {
       return NextResponse.json({ error: "Missing file or user ID" }, { status: 400 });
     }
+
+
 
 
 
@@ -91,7 +114,7 @@ export async function POST(req: NextRequest) {
         text: chunk,
         source: file.name,
         type: "document",
-        owner_id: sessionId,
+        owner_id: finalSessionId, 
         embedding: vector,
         createdAt: new Date(),
       });
