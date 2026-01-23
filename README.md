@@ -29,10 +29,19 @@ npm install
 ```
 
 ### 2. Environment Setup
-Create a .env.local file with below credentials
+Create a `.env.local` file in the root directory. You need credentials from MongoDB, Google Gemini, and Clerk.
 ```
+# Database (MongoDB Atlas)
 MONGODB_URI=<your mongodb connection string>
+
+# AI Model (Google Gemini)
 GOOGLE_API_KEY=<your gemini api key>
+
+# Clerk URLs
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=<your clerk publishable key>
+CLERK_SECRET_KEY=<your clerk secret key>
+
+
 ```
 
 

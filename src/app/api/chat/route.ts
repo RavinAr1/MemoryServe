@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
           path: "embedding",
           queryVector: questionVector,
           numCandidates: 100,
-          limit: 3,
+          limit: 6,
           filter: { owner_id: sessionId },
         },
       },
@@ -77,8 +77,19 @@ export async function POST(req: NextRequest) {
       answer: response.content,
     });
 
-  } catch (error) {
+
+
+} catch (error: any) {
     console.error("Error generating answer:", error);
+
+    // Handle Rate Limiting
+    if (error.message?.includes("429") || error.status === 429) {
+      return NextResponse.json(
+        { error: "Rate limit exceeded. Please wait." },
+        { status: 429 } 
+      );
+    }
+
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
