@@ -18,6 +18,9 @@ import { useUser, SignInButton, UserButton } from "@clerk/nextjs";
 import Link from "next/link"
 
 
+import ReactMarkdown from "react-markdown"; 
+import remarkGfm from "remark-gfm"; 
+
 type Message = {
   role: "user" | "ai" | "system";
   content: string;
@@ -313,15 +316,42 @@ export default function Home() {
                 </div>
               )}
 
-              <div className={`px-5 py-4 rounded-2xl max-w-lg text-sm leading-relaxed font-medium backdrop-blur-xl 
-                border transition-all duration-300 ${msg.role === "user" ? `bg-gradient-to-r ${isCyanMode ? 
-                'from-cyan-600/40 to-blue-600/40 border-cyan-500/50 text-cyan-50' : 
-                'from-emerald-600/40 to-teal-600/40 border-emerald-500/50 text-emerald-50'} rounded-br-sm shadow-lg` : 
-                `bg-slate-800/60 border-slate-700/50 text-slate-100 rounded-bl-sm`}`}>
 
 
-                {msg.content}
+              <div className={`px-5 py-4 rounded-2xl max-w-lg text-sm leading-relaxed font-medium 
+              backdrop-blur-xl border transition-all duration-300 ${
+                msg.role === "user" 
+                  ? `bg-linear-to-r ${isCyanMode ? 
+                    'from-cyan-600/40 to-blue-600/40 border-cyan-500/50 text-cyan-50' : 
+                    'from-emerald-600/40 to-teal-600/40 border-emerald-500/50 text-emerald-50'} rounded-br-sm shadow-lg` 
+                  : `bg-slate-800/60 border-slate-700/50 text-slate-100 rounded-bl-sm`
+              }`}>
+
+
+
+                {/* MARKDOWN RENDERER START */}
+                <div className={`prose prose-sm max-w-none ${msg.role === "user" ? "prose-invert text-slate-50" : 
+                  "prose-invert text-slate-200"}`}>
+                  <ReactMarkdown 
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      a: ({node, ...props}) => <a {...props} target="_blank" rel="noopener noreferrer" 
+                      className="text-cyan-400 hover:underline font-bold" />,
+                      ul: ({node, ...props}) => <ul {...props} className="list-disc pl-4 space-y-1" />,
+                      ol: ({node, ...props}) => <ol {...props} className="list-decimal pl-4 space-y-1" />,
+                      h1: ({node, ...props}) => <h1 {...props} className="text-lg font-bold mt-2 mb-1" />,
+                      h2: ({node, ...props}) => <h2 {...props} className="text-base font-bold mt-2 mb-1" />,
+                      h3: ({node, ...props}) => <h3 {...props} className="text-sm font-bold mt-2 mb-1" />,
+                      strong: ({node, ...props}) => <strong {...props} className="font-extrabold text-white" />,
+                    }}
+                  >
+                    {msg.content}
+                  </ReactMarkdown>
+                </div>
+                {/* MARKDOWN RENDERER END */}
               </div>
+
+              
               {msg.role === "user" && (
                 <div className="w-10 h-10 rounded-xl bg-slate-700 flex items-center justify-center 
                 overflow-hidden border border-slate-500/50">
