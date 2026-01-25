@@ -104,7 +104,7 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           [mode === "teach" ? "text" : "question"]: userText, 
-          sessionId: activeSessionId // <--- Uses Clerk ID or Guest ID
+          sessionId: activeSessionId //  Uses Clerk ID or Guest ID
         }),
       });
 
@@ -318,6 +318,8 @@ export default function Home() {
 
 
 
+
+
               <div className={`px-5 py-4 rounded-2xl max-w-lg text-sm leading-relaxed font-medium 
               backdrop-blur-xl border transition-all duration-300 ${
                 msg.role === "user" 
@@ -420,6 +422,9 @@ export default function Home() {
 
                   {cooldown > 0 ? <span className="text-xs font-bold">{cooldown}</span> : <Send size={18} />}
                 </button>
+
+
+          {/* TODO : Add Switching between Several Gemini models using a dropdown menu */}
 
                 
               </div>
