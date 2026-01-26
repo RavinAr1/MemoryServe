@@ -12,9 +12,11 @@ MemoryServe is a **Retrieval-Augmented Generation (RAG)** project. It allows an 
 ## 🛠️ Tech Stack
 
 * **Framework:** Next.js & TypeScript
+* **Authentication:** Clerk
 * **Database:** MongoDB Atlas 
 * **AI:** Google Gemini API
 * **Integration:** LangChain.js
+* **Styling:** Tailwind CSS
 
 ## ⚡Getting Started
 
