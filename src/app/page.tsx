@@ -12,7 +12,8 @@ import {
   Loader2,
   Lock, 
   Ghost,
-  Database 
+  Database,
+  ChevronUp
 } from "lucide-react"; 
 import { useUser, SignInButton, UserButton } from "@clerk/nextjs"; 
 import Link from "next/link"
@@ -40,6 +41,24 @@ export default function Home() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const [selectedModel, setSelectedModel] = useState("gemini-flash-lite-latest"); //Latest Gemini flash lite as the Default model
+
+
+
+  // Dropdown state for model selection
+  const [showModelMenu, setShowModelMenu] = useState(false);
+
+  // Model options for the dropdown
+  const modelOptions = [
+    { id: "gemini-flash-lite-latest", label: "⚡ Flash Lite (Auto)", desc: "Fastest & Efficient Updated to the latest Flash Lite model" },
+    { id: "gemini-2.5-flash", label: "⚡ Flash 2.5", desc: "Balanced Performance" },
+    { id: "gemini-2.5-pro", label: "🧠 Pro 2.5", desc: "Complex Reasoning" },
+    { id: "gemini-3-flash-preview", label: "🚀 Flash 3.0", desc: "Preview / Cutting Edge" },
+  ];
+
+  // Get the label of the currently selected model
+  const currentModelLabel = modelOptions.find(m => m.id === selectedModel)?.label || "Select Model";
+
+
 
   // Generate Guest ID
   useEffect(() => {
@@ -427,36 +446,75 @@ export default function Home() {
                 </button>
 
 
+
+
+
                 {/* Model Selector Dropdown */}
-                <div className="absolute right-14 top-1/2 -translate-y-1/2">
-                  <select
-                    value={selectedModel}
-                    onChange={(e) => setSelectedModel(e.target.value)}
-                    disabled={mode === "teach"} 
-                    className={`text-xs font-medium bg-transparent focus:outline-none cursor-pointer appearance-none text-right pr-2 
-                      ${isCyanMode ? "text-slate-400 hover:text-cyan-400" : "text-slate-400 hover:text-emerald-400"}`}
+                <div className="absolute right-14 top-1/2 -translate-y-1/2 z-30">
+                  
+                  <button
+                    onClick={() => setShowModelMenu(!showModelMenu)}
+                    disabled={mode === "teach"}
+                    className={`flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-lg transition-all duration-300 border
+                      ${mode === "teach" ? "opacity-50 cursor-not-allowed border-transparent" : "cursor-pointer"}
+                      ${showModelMenu 
+                        ? "bg-slate-800 border-slate-600 text-white" 
+                        : "bg-transparent border-transparent hover:bg-slate-800/50"}
+                      ${isCyanMode ? "text-slate-300 hover:text-cyan-400" : "text-slate-300 hover:text-emerald-400"}
+                    `}
                   >
-                    {/* The "Safe" Option - Always works, updates automatically */}
-                    <option value="gemini-flash-lite-latest" className="bg-slate-900 text-slate-300">
-                       ⚡ Latest Flash Lite model
-                    </option>
 
-                    {/* The "Balanced" Option - Good speed/cost ratio */}
-                    <option value="gemini-2.5-flash" className="bg-slate-900 text-slate-300">
-                       ⚡ Flash 2.5 (Stable)
-                    </option>
+                    <span className="hidden sm:inline">{currentModelLabel}</span>
+                    <span className="sm:hidden">Model</span>
+                    <ChevronUp size={14} className={`transition-transform duration-300 ${showModelMenu ? "rotate-180" : ""}`} />
+                  </button>
 
-                     {/* The "Power" Option - For deep reasoning */}
-                    <option value="gemini-2.5-pro" className="bg-slate-900 text-slate-300">
-                       🧠 Pro 2.5 (Smartest)
-                    </option>
 
-                    {/* The "Cutting Edge" Option - Newest features */}
-                    <option value="gemini-3-flash-preview" className="bg-slate-900 text-slate-300">
-                       🚀 Flash 3.0 (Preview)
-                    </option>
-                  </select>
+
+
+
+                  {/* Pop-up Menu with models */}
+                  {showModelMenu && mode !== "teach" && (
+                    <>
+
+                      
+                      {/* Model Dropdown */}
+                      <div className="absolute bottom-full right-0 mb-3 w-64 bg-slate-900/95 backdrop-blur-xl 
+                      border border-slate-700/50 
+                        rounded-xl shadow-2xl overflow-hidden z-50 animate-in slide-in-from-bottom-2 fade-in duration-200">
+                        
+                        <div className="px-3 py-2 text-[10px] uppercase tracking-wider
+                         text-slate-500 font-bold bg-slate-950/50">
+                          Select AI Model
+                        </div>
+
+
+                        {modelOptions.map((option) => (
+                          <button
+                            key={option.id}
+                            onClick={() => {
+                              setSelectedModel(option.id);
+                              setShowModelMenu(false);
+                            }}
+                            className={`w-full text-left px-4 py-3 text-sm transition-colors duration-200 flex flex-col gap-0.5
+                              ${selectedModel === option.id 
+                                ? (isCyanMode ? "bg-cyan-900/20 text-cyan-400" : "bg-emerald-900/20 text-emerald-400") 
+                                : "text-slate-300 hover:bg-slate-800"
+                              }`}
+                          >
+                            <span className="font-semibold flex items-center justify-between">
+                              {option.label}
+                              {selectedModel === option.id && <div className={`w-1.5 h-1.5 rounded-full ${isCyanMode ? 
+                                "bg-cyan-400" : "bg-emerald-400"}`} />}
+                            </span>
+                            <span className="text-xs text-slate-500 font-medium">{option.desc}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
+
 
                 
               </div>
