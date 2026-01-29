@@ -12,9 +12,11 @@ MemoryServe is a **Retrieval-Augmented Generation (RAG)** project. It allows an 
 ## 🛠️ Tech Stack
 
 * **Framework:** Next.js & TypeScript
+* **Authentication:** Clerk
 * **Database:** MongoDB Atlas 
 * **AI:** Google Gemini API
 * **Integration:** LangChain.js
+* **Styling:** Tailwind CSS
 
 ## ⚡Getting Started
 
@@ -29,10 +31,19 @@ npm install
 ```
 
 ### 2. Environment Setup
-Create a .env.local file with below credentials
+Create a `.env.local` file in the root directory. You need credentials from MongoDB, Google Gemini, and Clerk.
 ```
+# Database (MongoDB Atlas)
 MONGODB_URI=<your mongodb connection string>
+
+# AI Model (Google Gemini)
 GOOGLE_API_KEY=<your gemini api key>
+
+# Clerk URLs
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=<your clerk publishable key>
+CLERK_SECRET_KEY=<your clerk secret key>
+
+
 ```
 
 

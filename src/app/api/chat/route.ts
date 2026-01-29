@@ -2,14 +2,40 @@ import { NextRequest, NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { auth } from "@clerk/nextjs/server";
+
+
 
 export async function POST(req: NextRequest) {
   try {
-    const { question, sessionId } = await req.json();
+    // Add 'model' to the extracted list
+    const { question, sessionId: clientSessionId, model } = await req.json();
 
-    if (!question || !sessionId) {
+    // --- Security Check Start ---
+
+    // Get Authenticated User(If user is logged in, use their userId as sessionId ,
+    //  If not logged in, ensure clientSessionId starts with "guest-")
+    const { userId } = await auth();
+    let finalSessionId = clientSessionId;
+
+    if (userId) {
+      finalSessionId = userId;
+    } else {
+       if (!clientSessionId || !clientSessionId.startsWith("guest-")) {
+         return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
+       }
+    }
+    // --- Security Check End ---
+
+
+
+
+
+    // Validate Input
+    if (!question || !finalSessionId) {
       return NextResponse.json({ error: "Missing question or sessionId" }, { status: 400 });
     }
+
 
     const client = await clientPromise;
     const db = client.db("memory_db");
@@ -30,8 +56,8 @@ export async function POST(req: NextRequest) {
           path: "embedding",
           queryVector: questionVector,
           numCandidates: 100,
-          limit: 3,
-          filter: { owner_id: sessionId },
+          limit: 6,
+          filter: { owner_id: finalSessionId },
         },
       },
       {
@@ -65,11 +91,12 @@ export async function POST(req: NextRequest) {
       ${question}
     `;
 
-    // Generate Answer using Gemini
+    //Generate Answer using Google Gemini(Fallback to latest Gemini Lite if model not specified)
     const llm = new ChatGoogleGenerativeAI({
-      model: "gemini-flash-lite-latest", // Gemini model
+      model: model || "gemini-flash-lite-latest", 
       apiKey: process.env.GOOGLE_API_KEY,
     });
+    
 
     const response = await llm.invoke(prompt);
     
@@ -77,8 +104,19 @@ export async function POST(req: NextRequest) {
       answer: response.content,
     });
 
-  } catch (error) {
+
+
+} catch (error: any) {
     console.error("Error generating answer:", error);
+
+    // Handle Rate Limiting
+    if (error.message?.includes("429") || error.status === 429) {
+      return NextResponse.json(
+        { error: "Rate limit exceeded. Please wait." },
+        { status: 429 } 
+      );
+    }
+
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
