@@ -39,6 +39,8 @@ export default function Home() {
   const [cooldown, setCooldown] = useState(0); 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const [selectedModel, setSelectedModel] = useState("gemini-flash-lite-latest"); //Latest Gemini flash lite as the Default model
+
   // Generate Guest ID
   useEffect(() => {
     
@@ -104,7 +106,8 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           [mode === "teach" ? "text" : "question"]: userText, 
-          sessionId: activeSessionId //  Uses Clerk ID or Guest ID
+          sessionId: activeSessionId, //  Uses Clerk ID or Guest ID
+          model: selectedModel
         }),
       });
 
@@ -424,7 +427,36 @@ export default function Home() {
                 </button>
 
 
-          {/* TODO : Add Switching between Several Gemini models using a dropdown menu */}
+                {/* Model Selector Dropdown */}
+                <div className="absolute right-14 top-1/2 -translate-y-1/2">
+                  <select
+                    value={selectedModel}
+                    onChange={(e) => setSelectedModel(e.target.value)}
+                    disabled={mode === "teach"} 
+                    className={`text-xs font-medium bg-transparent focus:outline-none cursor-pointer appearance-none text-right pr-2 
+                      ${isCyanMode ? "text-slate-400 hover:text-cyan-400" : "text-slate-400 hover:text-emerald-400"}`}
+                  >
+                    {/* The "Safe" Option - Always works, updates automatically */}
+                    <option value="gemini-flash-lite-latest" className="bg-slate-900 text-slate-300">
+                       ⚡ Latest Flash Lite model
+                    </option>
+
+                    {/* The "Balanced" Option - Good speed/cost ratio */}
+                    <option value="gemini-2.5-flash" className="bg-slate-900 text-slate-300">
+                       ⚡ Flash 2.5 (Stable)
+                    </option>
+
+                     {/* The "Power" Option - For deep reasoning */}
+                    <option value="gemini-2.5-pro" className="bg-slate-900 text-slate-300">
+                       🧠 Pro 2.5 (Smartest)
+                    </option>
+
+                    {/* The "Cutting Edge" Option - Newest features */}
+                    <option value="gemini-3-flash-preview" className="bg-slate-900 text-slate-300">
+                       🚀 Flash 3.0 (Preview)
+                    </option>
+                  </select>
+                </div>
 
                 
               </div>

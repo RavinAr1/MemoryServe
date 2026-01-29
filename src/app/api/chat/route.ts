@@ -8,7 +8,8 @@ import { auth } from "@clerk/nextjs/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const { question, sessionId: clientSessionId } = await req.json();
+    // Add 'model' to the extracted list
+    const { question, sessionId: clientSessionId, model } = await req.json();
 
     // --- Security Check Start ---
 
@@ -90,11 +91,12 @@ export async function POST(req: NextRequest) {
       ${question}
     `;
 
-    // Generate Answer using Gemini
+    //Generate Answer using Google Gemini(Fallback to latest Gemini Lite if model not specified)
     const llm = new ChatGoogleGenerativeAI({
-      model: "gemini-flash-lite-latest", // Gemini model
+      model: model || "gemini-flash-lite-latest", 
       apiKey: process.env.GOOGLE_API_KEY,
     });
+    
 
     const response = await llm.invoke(prompt);
     
