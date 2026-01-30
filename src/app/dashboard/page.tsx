@@ -346,23 +346,25 @@ export default function Dashboard() {
 
 
                   {/* FILE HEADERS BAR */}
-                  <div className="flex items-center justify-between p-4 bg-slate-900/80">
-                     <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${group.fileName === "Manual Entry" ? "bg-cyan-500/10 text-cyan-400" : "bg-purple-500/10 text-purple-400"}`}>
+                  <div className="flex items-center justify-between p-4 bg-slate-900/80 gap-3"> 
+
+                      <div className="flex items-center gap-3 min-w-0 flex-1"> 
+
+                        <div className={`p-2 shrink-0 rounded-lg ${group.fileName === "Manual Entry" ? 
+                          "bg-cyan-500/10 text-cyan-400" : "bg-purple-500/10 text-purple-400"}`}>
+
                            {group.fileName === "Manual Entry" ? <FileText size={18} /> : <File size={18} />}
                         </div>
-                        <div>
-                          <h3 className="font-semibold text-slate-200">{group.fileName}</h3>
+
+                        <div className="min-w-0">
+                          <h3 className="font-semibold text-slate-200 truncate">{group.fileName}</h3> 
                           <p className="text-xs text-slate-500">{group.notes.length} chunks stored</p>
                         </div>
-                     </div>
-
-
-
+                      </div>
 
 
                     {/* FILE NOTES LIST */}
-                     <div className="flex items-center gap-2">
+                     <div className="flex items-center gap-2 shrink-0">
 
                         {/* Expand/Collapse Button */}
                         <button 
