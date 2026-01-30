@@ -41,6 +41,8 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [cooldown, setCooldown] = useState(0); 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null); 
+
 
   const [selectedModel, setSelectedModel] = useState("gemini-flash-lite-latest"); //Latest Gemini flash lite as the Default model
 
@@ -89,9 +91,24 @@ export default function Home() {
       localStorage.removeItem("chatHistory"); 
       
       const name = user ? (user.firstName || user.username || 'there') : 'Guest';
-      setMessages([{ role: "ai", content: `Hello ${name}! I am ready to learn.` }]);
+      setMessages([{ role: "ai", content: `Hello ${name}! Teach me something new or ask me anything.` }]);
     }
   };
+
+
+
+
+  // Auto resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+    
+      // Set height to content height
+      textareaRef.current.style.height = "auto";
+      // Set height to scroll height
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [input]);
+
 
 
 
@@ -307,11 +324,10 @@ export default function Home() {
               </button>
             </div>
             
+            
 
 
-            <p className="text-xs text-slate-600 max-w-xs">
-              Guest data is saved to this browser only. Sign in to sync across devices.
-            </p>
+
          </div>
       </main>
     );
@@ -516,128 +532,134 @@ export default function Home() {
         pt-8 pb-8 px-6 z-20 backdrop-blur-sm border-t border-slate-800/20">
           <div className="max-w-4xl mx-auto">
             <div className="relative group">
+
               <div className={`absolute inset-0 rounded-2xl opacity-0 group-focus-within:opacity-100 
                 transition-opacity duration-500 ${isCyanMode ? 
                 'bg-linear-to-r from-cyan-500/20 to-blue-500/20 blur-xl' : 
                 'bg-linear-to-r from-emerald-500/20 to-teal-500/20 blur-xl'}`}></div>
 
 
-              <div className="relative flex items-center bg-slate-900/80 border border-slate-700/50 
+              {/* Input Container */}
+              <div className="relative flex items-end bg-slate-900/80 border border-slate-700/50 
               rounded-2xl backdrop-blur-xl hover:border-slate-600/50 transition-all duration-300 shadow-xl">
 
-
-                <input
+                  
+                <textarea
+                  ref={textareaRef}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault(); // Send when enter
+                      handleSend();       
+                    }
+                  }}
+
                   placeholder={!isCyanMode ? "Teach me something..." : "Ask me anything..."}
-                  className="flex-1 bg-transparent text-white text-sm px-6 py-4 focus:outline-none placeholder-slate-500"
-                  autoComplete="off"
+                  className="flex-1 bg-transparent text-white text-sm px-6 py-4 
+                  focus:outline-none placeholder-slate-500 resize-none max-h-48 overflow-y-auto min-h-14"
+                  rows={1}
                   disabled={cooldown > 0}
                 />
 
 
 
 
+                {/* Input Actions */}
+                <div className="flex items-center gap-2 pb-2 pr-2">
 
-
-                <button 
-                  onClick={isLoading ? handleStop : handleSend}
-                  disabled={!isLoading && (!input.trim() || cooldown > 0)}
-                  className={`mr-2 w-10 h-10 rounded-xl transition-all duration-300 font-semibold flex items-center 
-                    justify-center 
-                    ${isLoading 
-                        ? "bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/50 animate-pulse"
-                        : cooldown > 0 
-                            ? "bg-slate-700 text-slate-400" 
-                            : isCyanMode 
-                                ? "bg-linear-to-r from-cyan-500 to-blue-500 text-white" 
-                                : "bg-linear-to- from-emerald-500 to-teal-500 text-white"
-                    }`}
-                >
-                  {isLoading ? (
-                    <Square size={14} fill="currentColor" /> /* STOP ICON */
-                  ) : cooldown > 0 ? (
-                    <span className="text-xs font-bold">{cooldown}</span>
-                  ) : (
-                    <Send size={18} />
-                  )}
-                </button>
-
+                  {/* Model Selector */}
+                  <div className="relative">
+                    <button
+                        onClick={() => setShowModelMenu(!showModelMenu)}
+                        disabled={mode === "teach"}
+                        className={`flex items-center gap-1 text-[10px] font-medium px-2 py-1.5 rounded-lg 
+                          transition-all duration-300 border
+                        ${mode === "teach" ? "opacity-50 cursor-not-allowed border-transparent" : "cursor-pointer"}
+                        ${showModelMenu 
+                            ? "bg-slate-800 border-slate-600 text-white" 
+                            : "bg-transparent border-transparent hover:bg-slate-800/50"}
+                        ${isCyanMode ? "text-slate-400 hover:text-cyan-400" : "text-slate-400 hover:text-emerald-400"}
+                        `}
+                    >
+                      
+                        <span className="hidden sm:inline truncate max-w-20">{currentModelLabel}</span>
+                        <ChevronUp size={12} className={`transition-transform duration-300 
+                          ${showModelMenu ? "rotate-180" : ""}`} />
+                    </button>
 
 
 
 
+                    {/* Dropdown Menu */}
+                    {showModelMenu && mode !== "teach" && (
+                        <div className="absolute bottom-full right-0 mb-2 w-56 bg-slate-900/95 backdrop-blur-xl 
+                        border border-slate-700/50 rounded-xl shadow-2xl overflow-hidden z-50 
+                        animate-in slide-in-from-bottom-2 fade-in duration-200">
+                           
+                           <div className="px-3 py-2 text-[10px] uppercase tracking-wider 
+                           text-slate-500 font-bold bg-slate-950/50">
+                              Select AI Model
+                           </div>
 
 
-                {/* Model Selector Dropdown */}
-                <div className="absolute right-14 top-1/2 -translate-y-1/2 z-30">
-                  
-                  <button
-                    onClick={() => setShowModelMenu(!showModelMenu)}
-                    disabled={mode === "teach"}
-                    className={`flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-lg transition-all duration-300 border
-                      ${mode === "teach" ? "opacity-50 cursor-not-allowed border-transparent" : "cursor-pointer"}
-                      ${showModelMenu 
-                        ? "bg-slate-800 border-slate-600 text-white" 
-                        : "bg-transparent border-transparent hover:bg-slate-800/50"}
-                      ${isCyanMode ? "text-slate-300 hover:text-cyan-400" : "text-slate-300 hover:text-emerald-400"}
-                    `}
-                  >
+                           {modelOptions.map((option) => (
+                              <button
+                                key={option.id}
+                                onClick={() => {
+                                  setSelectedModel(option.id);
+                                  setShowModelMenu(false);
+                                }}
+                                className={`w-full text-left px-4 py-2.5 text-xs transition-colors duration-200 
+                                  flex flex-col gap-0.5
+                                  ${selectedModel === option.id 
+                                    ? (isCyanMode ? "bg-cyan-900/20 text-cyan-400" : "bg-emerald-900/20 text-emerald-400") 
+                                    : "text-slate-300 hover:bg-slate-800"
+                                  }`}
+                              >
 
-                    <span className="hidden sm:inline">{currentModelLabel}</span>
-                    <span className="sm:hidden">Model</span>
-                    <ChevronUp size={14} className={`transition-transform duration-300 ${showModelMenu ? "rotate-180" : ""}`} />
-                  </button>
+                                <span className="font-semibold flex items-center justify-between">
+                                  {option.label}
+                                  {selectedModel === option.id && <div className={`w-1.5 h-1.5 rounded-full 
+                                    ${isCyanMode ? "bg-cyan-400" : "bg-emerald-400"}`} />}
+                                </span>
+                                <span className="text-[9px] text-slate-500 font-medium">{option.desc}</span>
+                              </button>
+                            ))}
+                        </div>
+                    )}
+                  </div>
 
 
 
-
-
-                  {/* Pop-up Menu with models */}
-                  {showModelMenu && mode !== "teach" && (
-                    <>
+                  {/* Send and Stop Buttons */}
+                  <button 
+                    onClick={isLoading ? handleStop : handleSend}
+                    disabled={!isLoading && (!input.trim() || cooldown > 0)}
+                    className={`w-10 h-10 rounded-xl transition-all duration-300 font-semibold flex items-center 
+                        justify-center 
+                        ${isLoading 
+                            ? "bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/50 animate-pulse"
+                            : cooldown > 0 
+                                ? "bg-slate-700 text-slate-400" 
+                                : isCyanMode 
+                                    ? "bg-linear-to-r from-cyan-500 to-blue-500 text-white" 
+                                    : "bg-linear-to-r from-emerald-500 to-teal-500 text-white"
+                        }`}
+                    >
 
                       
-                      {/* Model Dropdown */}
-                      <div className="absolute bottom-full right-0 mb-3 w-64 bg-slate-900/95 backdrop-blur-xl 
-                      border border-slate-700/50 
-                        rounded-xl shadow-2xl overflow-hidden z-50 animate-in slide-in-from-bottom-2 fade-in duration-200">
-                        
-                        <div className="px-3 py-2 text-[10px] uppercase tracking-wider
-                         text-slate-500 font-bold bg-slate-950/50">
-                          Select AI Model
-                        </div>
+                    {isLoading ? (
+                       <Square size={14} fill="currentColor" />
+                    ) : cooldown > 0 ? (
+                       <span className="text-xs font-bold">{cooldown}</span>
+                    ) : (
+                       <Send size={18} />
+                    )}
+                  </button>
+                  
 
-
-                        {modelOptions.map((option) => (
-                          <button
-                            key={option.id}
-                            onClick={() => {
-                              setSelectedModel(option.id);
-                              setShowModelMenu(false);
-                            }}
-                            className={`w-full text-left px-4 py-3 text-sm transition-colors duration-200 flex flex-col gap-0.5
-                              ${selectedModel === option.id 
-                                ? (isCyanMode ? "bg-cyan-900/20 text-cyan-400" : "bg-emerald-900/20 text-emerald-400") 
-                                : "text-slate-300 hover:bg-slate-800"
-                              }`}
-                          >
-                            <span className="font-semibold flex items-center justify-between">
-                              {option.label}
-                              {selectedModel === option.id && <div className={`w-1.5 h-1.5 rounded-full ${isCyanMode ? 
-                                "bg-cyan-400" : "bg-emerald-400"}`} />}
-                            </span>
-                            <span className="text-xs text-slate-500 font-medium">{option.desc}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </>
-                  )}
                 </div>
-
-
-                
               </div>
             </div>
           </div>
