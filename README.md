@@ -10,6 +10,7 @@ MemoryServe is a **Retrieval-Augmented Generation (RAG)** application. It allows
 * **Memory Vault:** A dedicated Dashboard to view and delete specific memories.
 * **Secure & Private:** Implements Server-Side Authorization.
 * **Guest Mode:** Allows users to test the app without creating an account.
+* **Persistent Chat:** Chat history only saved locally(to manage free storage limits)
 
 ## 🛠️ Tech Stack
 
