@@ -353,22 +353,25 @@ export default function Home() {
           transition-colors duration-1000 ${isCyanMode ? 'bg-blue-500' : 'bg-teal-500'}`}></div>
       </div>
 
+
+
+
       {/* --- HEADER --- */}
       <header className="fixed top-0 w-full bg-slate-950/40 backdrop-blur-2xl border-b border-slate-800/50 shadow-2xl z-20">
-        <div className="px-6 py-4 max-w-5xl mx-auto flex justify-between items-center">
+        <div className="px-4 md:px-6 py-3 md:py-4 max-w-5xl mx-auto flex justify-between items-center">
           
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <div className={`p-2.5 rounded-xl bg-linear-to-br border backdrop-blur-xl transition-all duration-500 
+            <div className={`p-2 rounded-xl bg-linear-to-br border backdrop-blur-xl transition-all duration-500 
               ${isCyanMode ? 'from-cyan-500/20 to-blue-500/20 border-cyan-500/30' : 
               'from-emerald-500/20 to-teal-500/20 border-emerald-500/30'}`}>
-
-
               <Brain className={`w-5 h-5 transition-colors duration-500 ${isCyanMode ? 'text-cyan-400' : 'text-emerald-400'}`} />
-
             </div>
+            
+            
+            {/* HIDDEN ON MOBILE */}
             <div>
-              <h1 className="text-xl font-black tracking-tight text-white">MemoryServe</h1>
+              <h1 className="hidden md:block text-xl font-black tracking-tight text-white">MemoryServe</h1>
             </div>
           </div>
 
@@ -376,39 +379,44 @@ export default function Home() {
 
 
           {/* User Profile / Guest Badge */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 md:gap-4">
+
              {/* Mode Toggle */}
-             <div className="bg-slate-900/60 p-1.5 rounded-xl flex gap-1 border border-slate-700/50 backdrop-blur-xl mr-2">
-                <button onClick={() => setMode("teach")} className={`px-4 py-2 rounded-lg 
+             <div className="bg-slate-900/60 p-1 rounded-xl flex gap-1 border border-slate-700/50 backdrop-blur-xl mr-1 md:mr-2">
+                <button onClick={() => setMode("teach")} className={`px-3 py-2 rounded-lg 
                   transition-all duration-300 flex items-center gap-2 font-semibold text-sm ${!isCyanMode 
                   ? "bg-linear-to-r from-emerald-500 to-teal-500 text-white shadow-lg" : 
                   "text-slate-400 hover:text-slate-200"}`}>
+                  <Brain className="w-4 h-4" /> 
 
 
-                  <Brain className="w-4 h-4" /> Teach
+
+                  {/* TEXT HIDDEN ON MOBILE */}
+                  <span className="hidden sm:inline">Teach</span>
                 </button>
-                <button onClick={() => setMode("ask")} className={`px-4 py-2 rounded-lg 
+                <button onClick={() => setMode("ask")} className={`px-3 py-2 rounded-lg 
                   transition-all duration-300 flex items-center gap-2 font-semibold text-sm ${isCyanMode ? 
-                  "bg-linear-to-r from-cyan-500 to-blue-500 text-white shadow-lg" : "text-slate-400 hover:text-slate-200"}`}>
+                  "bg-linear-to-r from-cyan-500 to-blue-500 text-white shadow-lg" : 
+                  "text-slate-400 hover:text-slate-200"}`}>
+                    
+                  <Sparkles className="w-4 h-4" /> 
 
-                  <Sparkles className="w-4 h-4" /> Ask
+                  {/* TEXT HIDDEN ON MOBILE */}
+                  <span className="hidden sm:inline">Ask</span>
                 </button>
               </div>
 
-          {/* --- CLEAR CHAT --- */}
+             {/* Clear Chat */}
               <button 
                 onClick={handleClearChat}
-                className="p-2.5 mr-2 rounded-xl bg-slate-900/60 border border-slate-700/50 
+                className="p-2 rounded-xl bg-slate-900/60 border border-slate-700/50 
                 text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all backdrop-blur-xl"
                 title="Clear Conversation"
               >
                 <Trash2 size={18} />
               </button>
 
-
-
-
-          {/*  Vault / Dashboard Button */}
+             {/* Vault Button */}
              <Link 
                href="/dashboard"
                className="p-2 text-slate-400 hover:text-cyan-400 transition-colors"
@@ -416,7 +424,7 @@ export default function Home() {
              >
                <Database size={20} />
              </Link>
-
+             
 
              {user ? (
                <UserButton afterSignOutUrl="/" />
@@ -427,14 +435,14 @@ export default function Home() {
                      Sign In
                    </button>
                  </SignInButton>
-                 <div className="flex items-center gap-2 bg-slate-800/50 px-3 py-1.5 rounded-lg 
+                 {/* BADGE HIDDEN ON MOBILE */}
+                 <div className="hidden sm:flex items-center gap-2 bg-slate-800/50 px-3 py-1.5 rounded-lg 
                  border border-slate-700/50 text-xs font-mono text-slate-400">
                    <Ghost size={14} /> Guest
                  </div>
                </div>
              )}
           </div>
-
         </div>
       </header>
 
@@ -657,7 +665,7 @@ export default function Home() {
                        <Send size={18} />
                     )}
                   </button>
-                  
+
 
                 </div>
               </div>
