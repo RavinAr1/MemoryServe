@@ -1,21 +1,23 @@
 # 🧠 MemoryServe
 
-MemoryServe is a **Retrieval-Augmented Generation (RAG)** project. It allows an AI assistant to remember facts by storing user input in a vector database and retrieving relevant information during future conversations.
+MemoryServe is a **Retrieval-Augmented Generation (RAG)** application. It allows users to securely upload documents or type notes, storing them in a vector database to give the AI long-term memory for future conversations.
 
 ## 🚀Features
 
-* **Long-Term Memory:** Stores text inputs in MongoDB Atlas.
-* **Contextual Recall:** Uses vector search to find relevant notes based on meaning, not just keywords.
-* **Hybrid Chat:** Can handle both general questions and database-specific queries.
-* **Rate Limiting:** Includes basic handling for API quotas.
+* **PDF Ingestion:** Drag & drop PDF files to chat with your documents.
+* **Long-Term Memory:** Stores text and embeddings in MongoDB Atlas.
+* **Contextual Recall:** Uses vector search to find relevant notes based on meaning.
+* **Memory Vault:** A dedicated Dashboard to view and delete specific memories.
+* **Secure & Private:** Implements Server-Side Authorization.
+* **Guest Mode:** Allows users to test the app without creating an account.
 
 ## 🛠️ Tech Stack
 
 * **Framework:** Next.js & TypeScript
 * **Authentication:** Clerk
-* **Database:** MongoDB Atlas 
+* **Database:** MongoDB Atlas (Vector Search)
 * **AI:** Google Gemini API
-* **Integration:** LangChain.js
+* **Orchestration:** LangChain.js
 * **Styling:** Tailwind CSS
 
 ## ⚡Getting Started
