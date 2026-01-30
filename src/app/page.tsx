@@ -306,9 +306,16 @@ export default function Home() {
              {user ? (
                <UserButton afterSignOutUrl="/" />
              ) : (
-               <div className="flex items-center gap-2 bg-slate-800/50 px-3 py-1.5 rounded-lg 
-               border border-slate-700/50 text-xs font-mono text-slate-400">
-                 <Ghost size={14} /> Guest
+               <div className="flex items-center gap-3">
+                 <SignInButton mode="modal">
+                   <button className="text-xs font-bold text-cyan-400 hover:text-cyan-300 transition-colors">
+                     Sign In
+                   </button>
+                 </SignInButton>
+                 <div className="flex items-center gap-2 bg-slate-800/50 px-3 py-1.5 rounded-lg 
+                 border border-slate-700/50 text-xs font-mono text-slate-400">
+                   <Ghost size={14} /> Guest
+                 </div>
                </div>
              )}
           </div>
