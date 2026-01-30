@@ -244,7 +244,7 @@ export default function Dashboard() {
           </div>
 
           <div className="space-y-3">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-cyan-400 text-transparent bg-clip-text">
+            <h1 className="text-3xl font-bold The class `bg-gradient-to-r` can be written as `bg-linear-to-r` from-purple-400 to-cyan-400 text-transparent bg-clip-text">
               Access Restricted
             </h1>
             <p className="text-slate-400 text-lg leading-relaxed">
@@ -285,7 +285,7 @@ export default function Dashboard() {
             <ArrowLeft size={20} />
           </Link>
           <div>
-             <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 text-transparent bg-clip-text">
+             <h1 className="text-3xl font-bold bg-linear-to-r from-cyan-400 to-purple-400 text-transparent bg-clip-text">
                Memory Vault
              </h1>
              <p className="text-slate-400 text-sm">Manage documents and memories.</p>

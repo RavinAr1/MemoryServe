@@ -13,7 +13,9 @@ import {
   Lock, 
   Ghost,
   Database,
-  ChevronUp
+  ChevronUp,
+  Square,
+  Trash2
 } from "lucide-react"; 
 import { useUser, SignInButton, UserButton } from "@clerk/nextjs"; 
 import Link from "next/link"
@@ -41,6 +43,57 @@ export default function Home() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const [selectedModel, setSelectedModel] = useState("gemini-flash-lite-latest"); //Latest Gemini flash lite as the Default model
+
+  // ChatHistory Loading State
+  const [isHistoryLoaded, setIsHistoryLoaded] = useState(false);
+
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  
+// Load history from LocalStorage when app starts
+  useEffect(() => {
+    const saved = localStorage.getItem("chatHistory");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setMessages(parsed);
+        }
+      } catch (e) {
+        console.error("Failed to parse chat history", e);
+      }
+    }
+    // Mark history as loaded to allow other effects to run
+    setIsHistoryLoaded(true);
+  }, []);
+
+
+
+
+
+  // Save history to LocalStorage whenever messages change
+  useEffect(() => {
+    
+    if (isHistoryLoaded && messages.length > 0) {
+      localStorage.setItem("chatHistory", JSON.stringify(messages));
+    }
+  }, [messages, isHistoryLoaded]);
+
+
+
+
+  // Clear Chat History
+  const handleClearChat = () => {
+    if (confirm("Clear this conversation history? (Your Memory Vault data will stay safe)")) {
+      setMessages([]); 
+      localStorage.removeItem("chatHistory"); 
+      
+      const name = user ? (user.firstName || user.username || 'there') : 'Guest';
+      setMessages([{ role: "ai", content: `Hello ${name}! I am ready to learn.` }]);
+    }
+  };
+
+
 
 
 
@@ -81,11 +134,11 @@ export default function Home() {
 
   // Initial Greeting
   useEffect(() => {
-    if (showChat && messages.length === 0) {
+    if (showChat && isHistoryLoaded && messages.length === 0) {
       const name = user ? (user.firstName || user.username || 'there') : 'Guest';
-      setMessages([{ role: "ai", content: `Hello ${name}! I am ready to learn.` }]);
+      setMessages([{ role: "ai", content: `Hello ${name}! Teach me something new or ask me anything.` }]);
     }
-  }, [showChat, user, messages.length]);
+  }, [showChat, user, messages.length, isHistoryLoaded]);
 
   
 
@@ -106,7 +159,27 @@ export default function Home() {
   }, [cooldown]);
 
 
-  // Handle Send Message
+
+// --- Stop Message Generation ---
+  const handleStop = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort(); // Cancel the fetch request
+      abortControllerRef.current = null;  
+    }
+    setIsLoading(false); // Stop the spinner
+    setCooldown(0);     
+  };
+
+
+
+
+
+
+
+
+
+
+// Handle Send Message
   const handleSend = async () => {
     if (!input.trim() || !activeSessionId || cooldown > 0) return;
 
@@ -114,6 +187,10 @@ export default function Home() {
     setInput("");
     setIsLoading(true);
     setCooldown(4); 
+
+  
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     setMessages((prev) => [...prev, { role: "user", content: userText }]);
 
@@ -125,13 +202,15 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           [mode === "teach" ? "text" : "question"]: userText, 
-          sessionId: activeSessionId, //  Uses Clerk ID or Guest ID
+          sessionId: activeSessionId,
           model: selectedModel
         }),
+        signal: controller.signal, 
       });
 
 
-      // Handle response based on mode
+
+
       if (mode === "teach") {
         if (res.ok) {
           setMessages((prev) => [...prev, { role: "system", content: "Memory saved successfully!" }]);
@@ -146,11 +225,21 @@ export default function Home() {
             setMessages((prev) => [...prev, { role: "ai", content: data.answer }]);
         }
       }
-    } catch (error) {
-      console.error(error);
-      setMessages((prev) => [...prev, { role: "system", content: "Connection error." }]);
+    } catch (error: any) {
+      // Handle Abort Error
+      if (error.name === "AbortError") {
+
+        console.log("Generation stopped by user");
+        
+        setMessages((prev) => [...prev, { role: "system", content: "Stopped by user." }]);
+        
+      } else {
+        console.error(error);
+        setMessages((prev) => [...prev, { role: "system", content: "Connection error." }]);
+      }
     } finally {
       setIsLoading(false);
+      abortControllerRef.current = null;
     }
   };
 
@@ -172,7 +261,7 @@ export default function Home() {
 
 
          {/* Background Glow */}
-         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] 
+         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-125 h-125
          bg-cyan-500/20 rounded-full blur-[120px] pointer-events-none" />
 
          
@@ -187,7 +276,7 @@ export default function Home() {
             
             
             <div className="space-y-2">
-              <h1 className="text-5xl font-black tracking-tight bg-gradient-to-r from-cyan-400 via-blue-500 
+              <h1 className="text-5xl font-black tracking-tight bg-linear-to-r from-cyan-400 via-blue-500 
               to-purple-500 text-transparent bg-clip-text">
                 MemoryServe
               </h1>
@@ -234,7 +323,7 @@ export default function Home() {
 
   // --- CHAT APP ---
   return (
-    <main className="flex flex-col min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-black text-white 
+    <main className="flex flex-col min-h-screen bg-linear-to-br from-slate-950 via-slate-900 to-black text-white 
     font-sans overflow-hidden transition-colors duration-700">
       
 
@@ -254,7 +343,7 @@ export default function Home() {
           
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <div className={`p-2.5 rounded-xl bg-gradient-to-br border backdrop-blur-xl transition-all duration-500 
+            <div className={`p-2.5 rounded-xl bg-linear-to-br border backdrop-blur-xl transition-all duration-500 
               ${isCyanMode ? 'from-cyan-500/20 to-blue-500/20 border-cyan-500/30' : 
               'from-emerald-500/20 to-teal-500/20 border-emerald-500/30'}`}>
 
@@ -276,7 +365,7 @@ export default function Home() {
              <div className="bg-slate-900/60 p-1.5 rounded-xl flex gap-1 border border-slate-700/50 backdrop-blur-xl mr-2">
                 <button onClick={() => setMode("teach")} className={`px-4 py-2 rounded-lg 
                   transition-all duration-300 flex items-center gap-2 font-semibold text-sm ${!isCyanMode 
-                  ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg" : 
+                  ? "bg-linear-to-r from-emerald-500 to-teal-500 text-white shadow-lg" : 
                   "text-slate-400 hover:text-slate-200"}`}>
 
 
@@ -284,11 +373,21 @@ export default function Home() {
                 </button>
                 <button onClick={() => setMode("ask")} className={`px-4 py-2 rounded-lg 
                   transition-all duration-300 flex items-center gap-2 font-semibold text-sm ${isCyanMode ? 
-                  "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg" : "text-slate-400 hover:text-slate-200"}`}>
+                  "bg-linear-to-r from-cyan-500 to-blue-500 text-white shadow-lg" : "text-slate-400 hover:text-slate-200"}`}>
 
                   <Sparkles className="w-4 h-4" /> Ask
                 </button>
               </div>
+
+          {/* --- CLEAR CHAT --- */}
+              <button 
+                onClick={handleClearChat}
+                className="p-2.5 mr-2 rounded-xl bg-slate-900/60 border border-slate-700/50 
+                text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all backdrop-blur-xl"
+                title="Clear Conversation"
+              >
+                <Trash2 size={18} />
+              </button>
 
 
 
@@ -413,14 +512,14 @@ export default function Home() {
 
 
         {/* INPUT AREA */}
-        <div className="fixed bottom-0 w-full bg-gradient-to-t from-slate-950/90 via-slate-950/60 to-transparent 
+        <div className="fixed bottom-0 w-full bg-linear-to-t from-slate-950/90 via-slate-950/60 to-transparent 
         pt-8 pb-8 px-6 z-20 backdrop-blur-sm border-t border-slate-800/20">
           <div className="max-w-4xl mx-auto">
             <div className="relative group">
               <div className={`absolute inset-0 rounded-2xl opacity-0 group-focus-within:opacity-100 
                 transition-opacity duration-500 ${isCyanMode ? 
-                'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 blur-xl' : 
-                'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 blur-xl'}`}></div>
+                'bg-linear-to-r from-cyan-500/20 to-blue-500/20 blur-xl' : 
+                'bg-linear-to-r from-emerald-500/20 to-teal-500/20 blur-xl'}`}></div>
 
 
               <div className="relative flex items-center bg-slate-900/80 border border-slate-700/50 
@@ -439,18 +538,33 @@ export default function Home() {
 
 
 
+
+
+
                 <button 
-                  onClick={handleSend}
-                  disabled={isLoading || !input.trim() || cooldown > 0}
+                  onClick={isLoading ? handleStop : handleSend}
+                  disabled={!isLoading && (!input.trim() || cooldown > 0)}
                   className={`mr-2 w-10 h-10 rounded-xl transition-all duration-300 font-semibold flex items-center 
-                    justify-center ${cooldown > 0 ? "bg-slate-700 text-slate-400" : isCyanMode ? 
-                      "bg-gradient-to-r from-cyan-500 to-blue-500 text-white" : 
-                      "bg-gradient-to-r from-emerald-500 to-teal-500 text-white"}`}
+                    justify-center 
+                    ${isLoading 
+                        ? "bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/50 animate-pulse"
+                        : cooldown > 0 
+                            ? "bg-slate-700 text-slate-400" 
+                            : isCyanMode 
+                                ? "bg-linear-to-r from-cyan-500 to-blue-500 text-white" 
+                                : "bg-linear-to- from-emerald-500 to-teal-500 text-white"
+                    }`}
                 >
-
-
-                  {cooldown > 0 ? <span className="text-xs font-bold">{cooldown}</span> : <Send size={18} />}
+                  {isLoading ? (
+                    <Square size={14} fill="currentColor" /> /* STOP ICON */
+                  ) : cooldown > 0 ? (
+                    <span className="text-xs font-bold">{cooldown}</span>
+                  ) : (
+                    <Send size={18} />
+                  )}
                 </button>
+
+
 
 
 
