@@ -58,17 +58,21 @@ export async function DELETE(req: NextRequest) {
   }
 
 
+
   // Extract parameters
   const { searchParams } = new URL(req.url);
   const noteId = searchParams.get("id");
   const source = searchParams.get("source");
+  const deleteManual = searchParams.get("deleteManual"); 
+  const timeRange = searchParams.get("timeRange");       
+
+
 
 
   // Validate parameters
-  if (!noteId && !source) {
+  if (!noteId && !source && !deleteManual) {
     return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
   }
-
 
   // Perform deletion
   try {
@@ -78,18 +82,41 @@ export async function DELETE(req: NextRequest) {
     let result;
 
     if (noteId) {
+      
+       // Delete by note ID
        result = await db.collection("notes").deleteOne({ 
         _id: new ObjectId(noteId),
-        owner_id: sessionId   // Enforce secure ID
+        owner_id: sessionId 
       });
+
     } else if (source) {
+       // Delete by file source
        result = await db.collection("notes").deleteMany({
          source: source,
-         owner_id: sessionId // Enforce secure ID
+         owner_id: sessionId 
        });
+
+
+    } else if (deleteManual === "true") {
+       // Delete Manual Entries with Time Filter
+       const query: any = { owner_id: sessionId, source: { $exists: false } }; // Entries without source
+       
+
+       // Apply time range filter if provided
+       if (timeRange && timeRange !== "all") {
+         const now = new Date();
+         const cutoff = new Date();
+         
+         if (timeRange === "1h") cutoff.setHours(now.getHours() - 1);
+         if (timeRange === "24h") cutoff.setHours(now.getHours() - 24);
+         if (timeRange === "7d") cutoff.setDate(now.getDate() - 7);
+
+         query.createdAt = { $gte: cutoff };
+       }
+
+       result = await db.collection("notes").deleteMany(query);
     }
 
-    // Return deletion result
     return NextResponse.json({ success: true, deletedCount: result?.deletedCount });
   } catch (error) {
     return NextResponse.json({ error: "Failed to delete" }, { status: 500 });

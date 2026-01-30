@@ -2,7 +2,6 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 // Protect API routes and certain pages so that only authenticated users can access them
 const isProtectedRoute = createRouteMatcher([
-  '/dashboard(.*)',
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
