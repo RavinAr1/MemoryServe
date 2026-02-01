@@ -324,7 +324,13 @@ export default function Home() {
               </button>
             </div>
             
-            
+
+            {/* Demo Notice */}
+            <p className="text-xs max-w-xs md:max-w-sm mt-4 leading-relaxed">
+              <span className="text-amber-300 font-medium opacity-90">
+                ⚠️ Note: This is a demo deployment. Please do not upload sensitive personal or financial data.
+              </span>
+            </p>
 
 
 
