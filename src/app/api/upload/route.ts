@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
     const collection = db.collection("notes");
 
     const embeddings = new GoogleGenerativeAIEmbeddings({
-      modelName: "text-embedding-004",
+      modelName: "gemini-embedding-001",
       apiKey: process.env.GOOGLE_API_KEY,
     });
 

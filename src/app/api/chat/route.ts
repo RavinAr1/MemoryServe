@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
 
     // Embed the Question
     const embeddings = new GoogleGenerativeAIEmbeddings({
-      modelName: "text-embedding-004",
+      modelName: "gemini-embedding-001",
       apiKey: process.env.GOOGLE_API_KEY,
     });
     const questionVector = await embeddings.embedQuery(question);
