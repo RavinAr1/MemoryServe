@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
 
     // Generate Embedding
        const embeddings = new GoogleGenerativeAIEmbeddings({
-      modelName: "text-embedding-004", 
+      modelName: "gemini-embedding-001", 
       apiKey: process.env.GOOGLE_API_KEY,
     });
     const vector = await embeddings.embedQuery(text);
